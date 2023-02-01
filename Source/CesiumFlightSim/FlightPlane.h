@@ -9,6 +9,8 @@
 #include "Components/StaticMeshComponent.h"
 #include "Camera/CameraComponent.h"
 
+#include "CesiumGlobeAnchorComponent.h"
+
 #include "FlightPlane.generated.h"
 
 UCLASS()
@@ -26,6 +28,8 @@ class CESIUMFLIGHTSIM_API AFlightPlane : public APawn
 	TMap<PlaneControlSurface, ControlSurface> ControlSurfaces;
 
 	// Components
+	UPROPERTY(EditAnywhere, Category = "Components")
+		USceneComponent* SceneComponent;
 
 	UPROPERTY(EditAnywhere, Category = "Components")
 		UStaticMeshComponent* Mesh;
@@ -35,6 +39,9 @@ class CESIUMFLIGHTSIM_API AFlightPlane : public APawn
 
 	UPROPERTY(EditAnywhere, Category = "Components")
 		UCameraComponent* Camera;
+
+	UPROPERTY(EditAnywhere, Category = "Components")
+		UCesiumGlobeAnchorComponent* GlobalAnchor;
 
 	// Plane parameters
 

@@ -50,8 +50,12 @@ void AFlightPlane::MoveCameraRight(const float value)
 AFlightPlane::AFlightPlane()
 {
 	// Create our components
+	SceneComponent = CreateDefaultSubobject<USceneComponent>(TEXT("Scene Component"));
+	SetRootComponent(SceneComponent);
+
+
 	Mesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh"));
-	SetRootComponent(Mesh);
+	Mesh->SetupAttachment(GetRootComponent());
 
 	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("Spring Arm"));
 	SpringArm->SetupAttachment(GetRootComponent());
@@ -61,95 +65,7 @@ AFlightPlane::AFlightPlane()
 	Camera->SetupAttachment(SpringArm, USpringArmComponent::SocketName);
 	Camera->bUsePawnControlRotation = false;
 
-	// Create our control surfaces
-	ControlSurfaces.Add(PlaneControlSurface::LeftWing, ControlSurface(
-		FMatrix(
-			FVector(-0.1f, 0, 0),
-			FVector(0, -0.1f, 1),
-			FVector(0, 0, -0.5f),
-			FVector(1, 1, 1)
-		),
-		FMatrix(
-			FVector(-0.2f, 0, 0),
-			FVector(0, -0.1f, -0.2f),
-			FVector(0, 0, -0.5f),
-			FVector(1, 1, 1)
-		),
-		FMatrix(
-			FVector(-0.2f, 0, 0),
-			FVector(0, -0.1f, 1.4f),
-			FVector(0, 0.f, -0.5f),
-			FVector(1, 1, 1)
-		),
-		FVector(-400, 0, 0)
-		));
-
-	ControlSurfaces.Add(PlaneControlSurface::RightWing, ControlSurface(
-		FMatrix(
-			FVector(-0.1f, 0, 0),
-			FVector(0, -0.1f, 1),
-			FVector(0, 0, -0.5f),
-			FVector(1, 1, 1)
-		),
-		FMatrix(
-			FVector(-0.2f, 0, 0),
-			FVector(0, -0.1f, -0.2f),
-			FVector(0, 0, -0.5f),
-			FVector(1, 1, 1)
-		),
-		FMatrix(
-			FVector(-0.2f, 0, 0),
-			FVector(0, -0.1f, 1.4f),
-			FVector(0, 0.f, -0.5f),
-			FVector(1, 1, 1)
-		),
-		FVector(400, 0, 0)
-	));
-	
-	ControlSurfaces.Add(PlaneControlSurface::Tailplane, ControlSurface(
-		FMatrix(
-			FVector(-0.1f, 0, 0),
-			FVector(0, -0.1f, 0),
-			FVector(0, 0, -0.5f),
-			FVector(1, 1, 1)
-		),
-		FMatrix(
-			FVector(-0.1f, 0, 0),
-			FVector(0, -0.1f, -1),
-			FVector(0, 0, -0.5f),
-			FVector(1, 1, 1)
-		),
-		FMatrix(
-			FVector(-0.1f, 0, 0),
-			FVector(0, -0.1f, 1),
-			FVector(0, 0, -0.5f),
-			FVector(1, 1, 1)
-		),
-		FVector(0, -550, 0)
-	));
-	
-	ControlSurfaces.Add(PlaneControlSurface::Rudder, ControlSurface(
-		FMatrix(
-			FVector(-0.5f, 0, 0),
-			FVector(0, -0.1f, 0),
-			FVector(0, 0, -0.1f),
-			FVector(1, 1, 1)
-		),
-		FMatrix(
-			FVector(-0.5f, 0, 0),
-			FVector(-0.4f, -0.1f, 0),
-			FVector(0, 0, -0.1f),
-			FVector(1, 1, 1)
-		),
-		FMatrix(
-			FVector(-0.5f, 0, 0),
-			FVector(0.4f, -0.1f, 0),
-			FVector(0, 0, -0.1f),
-			FVector(1, 1, 1)
-		),
-		FVector(0, -550, 0)
-	));
-
+	GlobalAnchor = CreateDefaultSubobject<UCesiumGlobeAnchorComponent>(TEXT("Global Anchor"));
 
  	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -160,6 +76,97 @@ AFlightPlane::AFlightPlane()
 void AFlightPlane::BeginPlay()
 {
 	Super::BeginPlay();
+
+	FVector ActorScalar = GetActorScale();
+
+	// Create our control surfaces
+	ControlSurfaces.Add(PlaneControlSurface::LeftWing, ControlSurface(
+		FMatrix(
+		FVector(-0.1f, 0, 0),
+		FVector(0, -0.1f, 1),
+		FVector(0, 0, -0.5f),
+		FVector(1, 1, 1)
+	),
+		FMatrix(
+		FVector(-0.2f, 0, 0),
+		FVector(0, -0.1f, -0.2f),
+		FVector(0, 0, -0.5f),
+		FVector(1, 1, 1)
+	),
+		FMatrix(
+		FVector(-0.2f, 0, 0),
+		FVector(0, -0.1f, 1.4f),
+		FVector(0, 0.f, -0.5f),
+		FVector(1, 1, 1)
+	),
+		FVector(-400, -32.5f, 0) * ActorScalar
+	));
+
+	ControlSurfaces.Add(PlaneControlSurface::RightWing, ControlSurface(
+		FMatrix(
+		FVector(-0.1f, 0, 0),
+		FVector(0, -0.1f, 1),
+		FVector(0, 0, -0.5f),
+		FVector(1, 1, 1)
+	),
+		FMatrix(
+		FVector(-0.2f, 0, 0),
+		FVector(0, -0.1f, -0.2f),
+		FVector(0, 0, -0.5f),
+		FVector(1, 1, 1)
+	),
+		FMatrix(
+		FVector(-0.2f, 0, 0),
+		FVector(0, -0.1f, 1.4f),
+		FVector(0, 0.f, -0.5f),
+		FVector(1, 1, 1)
+	),
+		FVector(400, -32.5f, 0) * ActorScalar
+	));
+
+	ControlSurfaces.Add(PlaneControlSurface::Tailplane, ControlSurface(
+		FMatrix(
+		FVector(-0.1f, 0, 0),
+		FVector(0, -0.1f, 0),
+		FVector(0, 0, -0.f),
+		FVector(1, 1, 1)
+	),
+		FMatrix(
+		FVector(-0.1f, 0, 0),
+		FVector(0, -0.1f, -1),
+		FVector(0, 0, -0.f),
+		FVector(1, 1, 1)
+	),
+		FMatrix(
+		FVector(-0.1f, 0, 0),
+		FVector(0, -0.1f, 1),
+		FVector(0, 0, -0.f),
+		FVector(1, 1, 1)
+	),
+		FVector(0, -550, 0) * ActorScalar
+	));
+
+	ControlSurfaces.Add(PlaneControlSurface::Rudder, ControlSurface(
+		FMatrix(
+		FVector(-0.5f, 0, 0),
+		FVector(0, -0.1f, 0),
+		FVector(0, 0, -0.f),
+		FVector(1, 1, 1)
+	),
+		FMatrix(
+		FVector(-0.5f, 0, 0),
+		FVector(-0.4f, -0.1f, 0),
+		FVector(0, 0, -0.f),
+		FVector(1, 1, 1)
+	),
+		FMatrix(
+		FVector(-0.5f, 0, 0),
+		FVector(0.4f, -0.1f, 0),
+		FVector(0, 0, -0.f),
+		FVector(1, 1, 1)
+	),
+		FVector(0, -550, 0) * ActorScalar
+	));
 	
 }
 
@@ -167,6 +174,7 @@ void AFlightPlane::BeginPlay()
 void AFlightPlane::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	SetActorLocation(Mesh->GetComponentLocation());
 	UE_LOG(LogTemp, Display, TEXT("Current Velocity: %s"), *Mesh->GetComponentVelocity().ToString());
 	UE_LOG(LogTemp, Display, TEXT("Thrust: %f"), thrust);
 	Mesh->AddForce(Mesh->GetRightVector() * thrust * Mesh->CalculateMass());

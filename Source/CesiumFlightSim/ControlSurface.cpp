@@ -39,18 +39,17 @@ float ControlSurface::GetControl() const
 
 void ControlSurface::UpdateForce(UStaticMeshComponent* mesh, float duration)
 {
+	if (!mesh->IsValidLowLevel())
+		return;
+
 	FVector velocity = mesh->GetComponentVelocity();
-	velocity = velocity * 500.f;
+	FVector ActorScalar = mesh->GetAttachmentRootActor()->IsValidLowLevel() ? mesh->GetAttachmentRootActor()->GetActorScale() : FVector(0.f, 0.f, 0.f);
+	velocity = velocity * 500.f * ActorScalar.Length();
 	//UE_LOG(LogTemp, Display, TEXT("Velocity of a surface: %s"), *velocity.ToString());
 	FVector bodyVelocity = mesh->GetComponentTransform().InverseTransformVectorNoScale(velocity);
 	//UE_LOG(LogTemp, Display, TEXT("Body Velocity of a surface: %s"), *bodyVelocity.ToString());
 	FVector bodyForce = GetTensor().TransformVector(bodyVelocity);
 	mesh->AddForceAtLocationLocal(bodyForce, position);
-
-	DrawDebugLine(mesh->GetWorld(),
-		mesh->GetComponentTransform().TransformPositionNoScale(position),
-		mesh->GetComponentTransform().TransformPositionNoScale(position) + mesh->GetComponentTransform().TransformVectorNoScale(bodyForce),
-		FColor::Red);
 }
 
 FMatrix ControlSurface::GetTensor()
